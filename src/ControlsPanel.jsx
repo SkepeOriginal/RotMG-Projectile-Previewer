@@ -32,7 +32,7 @@ function ControlsPanel({
         id,
         tileSpeed: 8,
         rangeTiles: 5,
-        lifetime: 2000,
+        lifetime: 625,
         color: "lime",
         rateOfFire: 100,
         numShots: 1,
@@ -44,12 +44,12 @@ function ControlsPanel({
         delay: 0,
       },
     ]);
-    setSelectedGroup(projectileGroups.length); // Switch to new tab
   };
 
   const removeGroup = (index) => {
+    console.log(index, selectedGroup, setSelectedGroup);
     const updated = [...projectileGroups];
-    updated.splice(index, 1);
+    updated.splice(selectedGroup, 1);
     setProjectileGroups(updated);
     setSelectedGroup((prev) => Math.max(0, prev - 1));
   };
@@ -71,10 +71,7 @@ function ControlsPanel({
         />
       </label>
 
-      <div
-        class="player-div"
-        style={{ display: "flex", gap: "0.5rem", marginBottom: "1rem" }}
-      >
+      <div class="player-div">
         <button
           className={`toggle-button ${player.berserk ? "active" : ""}`}
           title="Berserk"
@@ -98,8 +95,7 @@ function ControlsPanel({
           <img
             src="/icons/bullet-path.png"
             alt="Bullet Path"
-            width="24"
-            height="24"
+            height="20"
           />
         </button>
 
@@ -115,10 +111,7 @@ function ControlsPanel({
         >
           <img
             src="/icons/bullet-range.png"
-            alt="Bullet Range"
-            width="24"
-            height="24"
-          />
+            alt="Bullet Range"/>
         </button>
 
         <button
@@ -132,8 +125,8 @@ function ControlsPanel({
         </button>
       </div>
 
-      <h3 style={{ marginTop: "1rem" }}>Info</h3>
-      <div style={{ fontSize: "0.9rem", opacity: 0.85 }}>
+      <h3>Info</h3>
+      <div>
         <div>
           <strong>Attacks/sec:</strong> {finalAPS.toFixed(3)}
         </div>
@@ -142,32 +135,19 @@ function ControlsPanel({
         </div>
       </div>
 
-      <h2 style={{ marginTop: "2rem" }}>Projectile Groups</h2>
+      <h2>Projectile Groups</h2>
 
       {/* Tabs */}
-      <div
-        style={{
-          display: "flex",
-          gap: "0.5rem",
-          marginBottom: "1rem",
-          flexWrap: "wrap",
-        }}
-      >
+      <div class="projectile-group">
         {projectileGroups.map((group, i) => (
           <button
+            className = {`group-button toggle-button ${selectedGroup === i ? "active" : ""}`}
             key={group.id}
-            onClick={() => setSelectedGroup(i)}
-            style={{
-              padding: "0.3rem 0.6rem",
-              background: selectedGroup === i ? "#444" : "#222",
-              color: "white",
-              border: "1px solid #666",
-              cursor: "pointer",
-            }}
-          >
-            Group {i + 1}
+            onClick={() => setSelectedGroup(i)}>
+            {i + 1}
           </button>
         ))}
+        <button onClick={addGroup} className="group-button">+</button>
       </div>
 
       {/* Selected Group Settings */}
@@ -379,18 +359,15 @@ function ControlsPanel({
                 <button
                   onClick={() => removeGroup(selectedGroup)}
                   style={{ marginTop: "0.5rem" }}
+                  className="group-delete-button"
                 >
-                  Remove Group
+                  Delete Group
                 </button>
               </>
             );
           })()}
         </div>
       )}
-
-      <button onClick={addGroup} style={{ marginTop: "1rem" }}>
-        Add Projectile Group
-      </button>
     </div>
   );
 }

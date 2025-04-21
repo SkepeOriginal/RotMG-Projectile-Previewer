@@ -3,6 +3,18 @@
   src: url('./fonts/ChronoType.ttf') format('truetype');
 }
 
+/* Chrome, Safari, Edge, Opera */
+input[type=number]::-webkit-inner-spin-button,
+input[type=number]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+/* Firefox */
+input[type=number] {
+  -moz-appearance: textfield;
+}
+
 body,
 .app {
   font-family: 'Chronotype', sans-serif;
@@ -36,6 +48,10 @@ html,
   cursor: crosshair;
 }
 
+::-webkit-scrollbar {
+  display:none
+}
+
 .controls {
   position: absolute;
   top: 0;
@@ -43,9 +59,25 @@ html,
   width: 300px;
   height: 100vh;
   overflow-y: auto;
-  background-color: #111;
+  background-color: rgba(17, 17, 17, 0.75);
+  border: 3px solid rgba(255, 255, 255, 0.1);
+  border-style: outset;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
   padding: 1rem;
   box-sizing: border-box;
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+  transition: 
+    background-color 0.3s ease,
+    transform 0.3s ease,
+    box-shadow 0.3s ease,
+    border 0.3s ease;
+}
+
+.controls:hover {
+  background-color: rgba(34, 34, 34, 0.9);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3), 0 0 10px rgba(0, 0, 0, 0.2);
+  color: #fff;
 }
 
 
@@ -69,6 +101,35 @@ html,
   width: 100px;
 }
 
+.group-hud {
+  position: absolute;
+  top: 1rem;
+  left: 1rem;
+  color: #ccc;
+  font-size: 1.2rem;
+  background-color: rgba(17, 17, 17, 0.75); /* translucent for modern look */
+  padding: 0.5rem 1rem;
+  border-radius: 10px;
+  backdrop-filter: blur(6px);
+  border: 3px solid rgba(255, 255, 255, 0.1);
+  border-style: outset;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  transition: 
+    background-color 0.3s ease,
+    transform 0.3s ease,
+    box-shadow 0.3s ease,
+    border 0.3s ease;
+  cursor: pointer;
+}
+
+.group-hud:hover {
+  background-color: rgba(34, 34, 34, 0.9);
+  transform: scale(1.05);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3), 0 0 10px rgba(0, 0, 0, 0.2);
+  border-style: outset;
+  color: #fff;
+}
+
 .player-div {
   display: flex;
   gap: 0.5rem;
@@ -78,6 +139,8 @@ html,
 .player-div button {
   background: #222;
   border: 3px solid #666;
+  border-radius: 10px;
+  box-shadow: 0 0 10px 1px rgba(0, 0, 0, 0.5);
   padding: 6px;
   cursor: pointer;
   width: 128px;
@@ -86,9 +149,66 @@ html,
 
 .player-div button:hover {
   background: #555;
-  transition: 0.5s ease;
+  transform: scale(1.1);
+  transition: 
+    background-color 0.3s ease,
+    transform 0.3s ease,
+    box-shadow 0.3s ease,
+    border 0.3s ease;
 }
 
 .player-div button.active {
   background: #ffa85b;
+}
+
+.player-div button img {
+  max-width: 24px;
+  max-height: 24px;
+}
+
+.projectile-group button,
+.group-delete-button {
+  padding: 0.3rem 0.6rem;
+  background: #222;
+  color: white;
+  border: 1px solid #666;
+  border-radius: 5px;
+  cursor: pointer
+}
+
+.projectile-group button:hover,
+.group-delete-button:hover {
+  background: #555;
+  transform: scale(1.2);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3), 0 0 10px rgba(0, 0, 0, 0.2);
+  transition: 
+    background-color 0.3s ease,
+    transform 0.3s ease,
+    box-shadow 0.3s ease,
+    border 0.3s ease;
+}
+
+.projectile-group button.active,
+.projectile-group button:active {
+  background: #e78f43;
+  border: #a7652c;
+}
+
+.controls h3 {
+  margin-top: 1rem;
+}
+
+.controls h2 {
+  margin-top: 2rem;
+}
+
+.controls div {
+  font-size: 1.2rem;
+}
+
+.projectile-group {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
 }
