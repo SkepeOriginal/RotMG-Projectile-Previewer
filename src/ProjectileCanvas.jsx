@@ -1,6 +1,7 @@
 import React, { useRef, useEffect } from "react";
 
 const tileSize = 64;
+var internalProjectileID = 1;
 
 function getProjectilePosition(
   centerX,
@@ -9,7 +10,8 @@ function getProjectilePosition(
   dist,
   amplitude,
   frequency,
-  rangePx
+  rangePx,
+  projectileID
 ) {
   const dirX = Math.cos(angle);
   const dirY = Math.sin(angle);
@@ -17,8 +19,11 @@ function getProjectilePosition(
   const perpY = dirX;
 
   const travelPercent = dist / rangePx;
-  const waveOffset =
+  var waveOffset =
     amplitude * Math.sin(travelPercent * frequency * 2 * Math.PI);
+  if (!isEven(projectileID)) {
+    waveOffset = waveOffset * -1;
+  }
 
   return {
     x: centerX + dirX * dist + perpX * waveOffset,
@@ -96,7 +101,7 @@ function ProjectileCanvas({ player, projectileGroups }) {
             const angle = baseAngle + offsetAngle + spreadOffset;
 
             ctx.beginPath();
-            const steps = 60;
+            const steps = 30;
 
             for (let i = 0; i <= steps; i++) {
               const dist = (i / steps) * rangePx;
@@ -107,7 +112,8 @@ function ProjectileCanvas({ player, projectileGroups }) {
                 dist,
                 amplitudePx,
                 frequency,
-                rangePx
+                rangePx,
+                1
               );
               if (i === 0) ctx.moveTo(x, y);
               else ctx.lineTo(x, y);
@@ -117,6 +123,32 @@ function ProjectileCanvas({ player, projectileGroups }) {
             ctx.globalAlpha = 1;
             ctx.lineWidth = 1;
             ctx.stroke();
+
+            if (group.amplitude > 0) {
+              ctx.beginPath();
+              const steps = 30;
+
+              for (let i = 0; i <= steps; i++) {
+                const dist = (i / steps) * rangePx;
+                const { x, y } = getProjectilePosition(
+                  centerX,
+                  centerY,
+                  angle,
+                  dist,
+                  amplitudePx,
+                  frequency,
+                  rangePx,
+                  2
+                );
+                if (i === 0) ctx.moveTo(x, y);
+                else ctx.lineTo(x, y);
+              }
+
+              ctx.strokeStyle = color;
+              ctx.globalAlpha = 1;
+              ctx.lineWidth = 1;
+              ctx.stroke();
+            }
           }
         }
         ctx.globalAlpha = 1;
@@ -183,6 +215,7 @@ function ProjectileCanvas({ player, projectileGroups }) {
             for (let s = 0; s < totalShots; s++) {
               const spreadOffset = angleBetween * (s - (totalShots - 1) / 2);
               const finalAngle = baseAngle + offsetAngle + spreadOffset;
+              internalProjectileID++;
 
               projectilesRef.current.push({
                 angle: finalAngle,
@@ -194,6 +227,7 @@ function ProjectileCanvas({ player, projectileGroups }) {
                 frequency: group.frequency ?? 0,
                 color: group.color || "lime",
                 delay: group.delat ?? 0,
+                internalProjectileID: internalProjectileID
               });
             }
           }
@@ -203,6 +237,10 @@ function ProjectileCanvas({ player, projectileGroups }) {
       projectilesRef.current = projectilesRef.current.filter(
         (p) => now - p.spawnTime < p.lifetime
       );
+
+      if (projectilesRef.current.length > 1000) {
+        projectilesRef.current.splice(0, projectilesRef.current.length - 1000);
+      }      
 
       for (const p of projectilesRef.current) {
         const elapsed = (now - p.spawnTime) / 1000;
@@ -217,7 +255,8 @@ function ProjectileCanvas({ player, projectileGroups }) {
           dist,
           p.amplitude * tileSize,
           p.frequency,
-          p.rangeTiles * tileSize
+          p.rangeTiles * tileSize,
+          p.internalProjectileID
         );
 
         ctx.beginPath();
@@ -248,6 +287,10 @@ function ProjectileCanvas({ player, projectileGroups }) {
       }}
     />
   );
+}
+
+function isEven(n) {
+  return n % 2 === 0;
 }
 
 export default ProjectileCanvas;
