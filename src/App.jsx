@@ -29,7 +29,8 @@ function App() {
       delay: 0,
       isWavy: false,
       isParametric: false,
-      sineOffset: 0
+      sineOffset: 0,
+      hoveredProjectileGroup: null
     },
   ]);
 
@@ -37,7 +38,10 @@ function App() {
 
   return (
     <div className="app">
-      <ProjectileCanvas player={player} projectileGroups={projectileGroups} />
+      <ProjectileCanvas
+        player={player}
+        projectileGroups={projectileGroups}
+      />
       <ControlsPanel
         player={player}
         setPlayer={setPlayer}
@@ -46,8 +50,9 @@ function App() {
         selectedGroup={selectedGroup}
         setSelectedGroup={setSelectedGroup}
       />
-
-      <GroupHUD projectileGroups={projectileGroups} />
+      <GroupHUD
+        projectileGroups={projectileGroups}
+      />
     </div>
   );
 }

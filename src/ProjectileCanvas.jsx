@@ -110,6 +110,7 @@ function ProjectileCanvas({ player, projectileGroups }) {
       const { x: centerX, y: centerY } = getCenter(canvas);
 
       if (player.showBulletPath) {
+        let index = 0;
         for (const group of projectileGroups) {
           const totalShots = group.numShots ?? 1;
           const angleBetween = (group.angle ?? 9) * (Math.PI / 180);
@@ -126,7 +127,11 @@ function ProjectileCanvas({ player, projectileGroups }) {
           }
           const amplitudePx = (group.amplitude ?? 0) * tileSize;
           const frequency = group.frequency ?? 0;
-          const color = "gray";
+          var color = "gray";
+          if (index === group.hoveredProjectileGroup) {
+            color = "aqua";
+          }
+          index++;
 
           for (let s = 0; s < totalShots; s++) {
             const spreadOffset = angleBetween * (s - (totalShots - 1) / 2);
@@ -193,6 +198,7 @@ function ProjectileCanvas({ player, projectileGroups }) {
             }
           }
         }
+        index = 0;
         ctx.globalAlpha = 1;
       }
 

@@ -1,14 +1,12 @@
 import React from "react";
 
-const tileSize = 64;
-
 function ControlsPanel({
   player,
   setPlayer,
   projectileGroups,
   setProjectileGroups,
   selectedGroup,
-  setSelectedGroup,
+  setSelectedGroup
 }) {
   const handlePlayerChange = (e) => {
     const { name, type, value, checked } = e.target;
@@ -49,7 +47,6 @@ function ControlsPanel({
   };
 
   const removeGroup = (index) => {
-    console.log(index, selectedGroup, setSelectedGroup);
     const updated = [...projectileGroups];
     updated.splice(selectedGroup, 1);
     setProjectileGroups(updated);
@@ -145,7 +142,9 @@ function ControlsPanel({
           <button
             className = {`group-button toggle-button ${selectedGroup === i ? "active" : ""}`}
             key={group.id}
-            onClick={() => setSelectedGroup(i)}>
+            onClick={() => setSelectedGroup(i)}
+            onMouseEnter={() => handleGroupChange(i, "hoveredProjectileGroup", parseInt(i))}
+            onMouseLeave={() => handleGroupChange(i, "hoveredProjectileGroup", null)}>
             {i + 1}
           </button>
         ))}
