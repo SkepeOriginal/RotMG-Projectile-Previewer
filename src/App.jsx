@@ -8,7 +8,7 @@ function App() {
   const [player, setPlayer] = useState({
     dexterity: 50,
     berserk: false,
-    showBulletPath: false,
+    showBulletPath: true,
     showBulletRange: true,
     showPlayer: true,
   });
@@ -17,7 +17,6 @@ function App() {
     {
       id: 1,
       tileSpeed: 8,
-      rangeTiles: 5,
       lifetime: 625,
       color: "lime",
       rateOfFire: 100,
@@ -28,6 +27,9 @@ function App() {
       amplitude: 0,
       frequency: 0,
       delay: 0,
+      isWavy: false,
+      isParametric: false,
+      sineOffset: 0
     },
   ]);
 

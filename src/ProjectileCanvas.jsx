@@ -11,18 +11,50 @@ function getProjectilePosition(
   amplitude,
   frequency,
   rangePx,
-  projectileID
+  projectileID,
+  isWavy,
+  isParametric,
+  sineOffset,
+  elapsedSeconds
 ) {
   const dirX = Math.cos(angle);
   const dirY = Math.sin(angle);
   const perpX = -dirY;
   const perpY = dirX;
 
+  /*if (isWavy) {
+    if (amplitude <= 0.0001) { amplitude = 0.5; }
+    if (frequency <= 0.0001) { frequency = 1.75; }
+    amplitude *= elapsedSeconds;
+  }
+
   const travelPercent = dist / rangePx;
-  var waveOffset =
-    amplitude * Math.sin(travelPercent * frequency * 2 * Math.PI);
+  const sineInput = travelPercent * frequency * 2 * Math.PI;
+  var waveOffset = amplitude * Math.sin(sineInput);
   if (!isEven(projectileID)) {
     waveOffset = waveOffset * -1;
+  }*/
+
+  const travelPercent = dist / rangePx;
+
+  let waveOffset = 0;
+
+  if (isWavy) {
+    if (amplitude <= 0.0001) { amplitude = 0.5; }
+    if (frequency <= 0.0001) { frequency = 1.75; }
+    // Pure wavy uses time-based sine and growing amplitude
+    waveOffset =
+      Math.sin(elapsedSeconds * 3 * 2 * Math.PI) * elapsedSeconds * tileSize;
+  } else if (amplitude > 0.0001 && frequency > 0.0001) {
+    // Normal sine wave motion
+    waveOffset =
+      Math.sin(travelPercent * frequency * 2 * Math.PI) *
+      amplitude;
+  }
+
+  // Alternate offset for mirrored projectiles
+  if (!isEven(projectileID)) {
+    waveOffset *= -1;
   }
 
   return {
@@ -94,17 +126,18 @@ function ProjectileCanvas({ player, projectileGroups }) {
           }
           const amplitudePx = (group.amplitude ?? 0) * tileSize;
           const frequency = group.frequency ?? 0;
-          const color = group.color || "lime";
+          const color = "gray";
 
           for (let s = 0; s < totalShots; s++) {
             const spreadOffset = angleBetween * (s - (totalShots - 1) / 2);
             const angle = baseAngle + offsetAngle + spreadOffset;
-
+            
             ctx.beginPath();
             const steps = 30;
-
+            
             for (let i = 0; i <= steps; i++) {
               const dist = (i / steps) * rangePx;
+              const elapsed = (dist / (group.tileSpeed * tileSize));
               const { x, y } = getProjectilePosition(
                 centerX,
                 centerY,
@@ -113,7 +146,11 @@ function ProjectileCanvas({ player, projectileGroups }) {
                 amplitudePx,
                 frequency,
                 rangePx,
-                1
+                1,
+                group.isWavy,
+                group.isParametric,
+                group.sineOffset,
+                elapsed
               );
               if (i === 0) ctx.moveTo(x, y);
               else ctx.lineTo(x, y);
@@ -121,7 +158,7 @@ function ProjectileCanvas({ player, projectileGroups }) {
 
             ctx.strokeStyle = color;
             ctx.globalAlpha = 1;
-            ctx.lineWidth = 1;
+            ctx.lineWidth = 2;
             ctx.stroke();
 
             if (group.amplitude > 0) {
@@ -130,6 +167,7 @@ function ProjectileCanvas({ player, projectileGroups }) {
 
               for (let i = 0; i <= steps; i++) {
                 const dist = (i / steps) * rangePx;
+                const elapsed = (dist / (group.tileSpeed * tileSize));
                 const { x, y } = getProjectilePosition(
                   centerX,
                   centerY,
@@ -138,7 +176,11 @@ function ProjectileCanvas({ player, projectileGroups }) {
                   amplitudePx,
                   frequency,
                   rangePx,
-                  2
+                  2,
+                  group.isWavy,
+                  group.isParametric,
+                  group.sineOffset,
+                  elapsed
                 );
                 if (i === 0) ctx.moveTo(x, y);
                 else ctx.lineTo(x, y);
@@ -146,7 +188,7 @@ function ProjectileCanvas({ player, projectileGroups }) {
 
               ctx.strokeStyle = color;
               ctx.globalAlpha = 1;
-              ctx.lineWidth = 1;
+              ctx.lineWidth = 2;
               ctx.stroke();
             }
           }
@@ -156,24 +198,14 @@ function ProjectileCanvas({ player, projectileGroups }) {
 
       if (player.showBulletRange) {
         projectileGroups.forEach((group) => {
-          const range = group.rangeTiles * tileSize;
-          const trueRange =
-            group.tileSpeed * (group.lifetime / 1000) * tileSize;
+          const range = group.tileSpeed * (group.lifetime / 1000) * tileSize;
 
           // Draw range ring
           ctx.beginPath();
           ctx.arc(centerX, centerY, range, 0, Math.PI * 2);
-          ctx.strokeStyle = "aqua";
+          ctx.strokeStyle = "black";
           ctx.lineWidth = 2;
           ctx.stroke();
-
-          // Draw true range ring
-          ctx.beginPath();
-          ctx.arc(centerX, centerY, trueRange, 0, Math.PI * 2);
-          ctx.strokeStyle = "red";
-          ctx.setLineDash([4, 4]);
-          ctx.stroke();
-          ctx.setLineDash([]);
         });
       }
 
@@ -221,13 +253,15 @@ function ProjectileCanvas({ player, projectileGroups }) {
                 angle: finalAngle,
                 spawnTime: nowMs,
                 tileSpeed: group.tileSpeed,
-                rangeTiles: group.rangeTiles,
                 lifetime: group.lifetime,
                 amplitude: group.amplitude ?? 0,
                 frequency: group.frequency ?? 0,
                 color: group.color || "lime",
                 delay: group.delat ?? 0,
-                internalProjectileID: internalProjectileID
+                internalProjectileID: internalProjectileID,
+                isWavy: group.isWavy,
+                isParametric: group.isParametric,
+                sineOffset: group.sineOffset
               });
             }
           }
@@ -243,27 +277,55 @@ function ProjectileCanvas({ player, projectileGroups }) {
       }      
 
       for (const p of projectilesRef.current) {
-        const elapsed = (now - p.spawnTime) / 1000;
-        const dist = Math.min(
-          p.tileSpeed * tileSize * elapsed,
-          p.rangeTiles * tileSize
-        );
-        const { x, y } = getProjectilePosition(
-          centerX,
-          centerY,
-          p.angle,
-          dist,
-          p.amplitude * tileSize,
-          p.frequency,
-          p.rangeTiles * tileSize,
-          p.internalProjectileID
-        );
-
+        let x, y;
+      
+        if (p.isParametric) {
+          const timeAlive = now - p.spawnTime;
+          const fRatio = 360 / p.lifetime;
+          const offset =
+            (p.lifetime - timeAlive +
+              p.lifetime / 4);
+      
+          const amp = tileSize * 3; // Adjust this if needed
+          const px =
+            Math.cos(1 * offset * fRatio * Math.PI / 180) * amp;
+          const py =
+            Math.sin(2 * offset * fRatio * Math.PI / 180) * amp;
+      
+          const rot = p.angle; // already in radians
+          const rotX = px * Math.cos(rot) - py * Math.sin(rot);
+          const rotY = px * Math.sin(rot) + py * Math.cos(rot);
+      
+          x = centerX + rotX;
+          y = centerY + rotY;
+        } else {
+          const elapsed = (now - p.spawnTime) / 1000;
+          const dist = Math.min(
+            p.tileSpeed * tileSize * elapsed,
+            (p.tileSpeed * p.lifetime / 1000) * tileSize
+          );
+          const rangePx = (p.tileSpeed) * (p.lifetime / 1000) * tileSize;        
+          ({ x, y } = getProjectilePosition(
+            centerX,
+            centerY,
+            p.angle,
+            dist,
+            p.amplitude * tileSize,
+            p.frequency,
+            rangePx,
+            p.internalProjectileID,
+            p.isWavy,
+            p.isParametric,
+            p.sineOffset,
+            elapsed
+          ));
+        }
+      
         ctx.beginPath();
         ctx.arc(x, y, 5, 0, 2 * Math.PI);
         ctx.fillStyle = p.color || "lime";
         ctx.fill();
-      }
+      }      
 
       requestAnimationFrame(render);
     };

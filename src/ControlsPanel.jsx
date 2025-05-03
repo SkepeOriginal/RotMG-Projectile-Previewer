@@ -31,7 +31,6 @@ function ControlsPanel({
       {
         id,
         tileSpeed: 8,
-        rangeTiles: 5,
         lifetime: 625,
         color: "lime",
         rateOfFire: 100,
@@ -42,6 +41,9 @@ function ControlsPanel({
         amplitude: 0,
         frequency: 0,
         delay: 0,
+        isWavy: false,
+        isParametric: false,
+        sineOffset: 0
       },
     ]);
   };
@@ -161,10 +163,8 @@ function ControlsPanel({
         >
           {(() => {
             const group = projectileGroups[selectedGroup];
-            const expectedLifetime =
-              (group.rangeTiles / group.tileSpeed) * 1000;
-            const rangePx =
-              group.tileSpeed * tileSize * (group.lifetime / 1000);
+            const calculatedRange = (group.tileSpeed * 0.1) * (group.lifetime / 1000);
+            const calculatedRangeTiles = calculatedRange.toFixed(2) * 10;
 
             return (
               <>
@@ -177,21 +177,6 @@ function ControlsPanel({
                       handleGroupChange(
                         selectedGroup,
                         "tileSpeed",
-                        parseFloat(e.target.value)
-                      )
-                    }
-                  />
-                </label>
-
-                <label>
-                  Range (tiles):
-                  <input
-                    type="number"
-                    value={group.rangeTiles}
-                    onChange={(e) =>
-                      handleGroupChange(
-                        selectedGroup,
-                        "rangeTiles",
                         parseFloat(e.target.value)
                       )
                     }
@@ -320,6 +305,43 @@ function ControlsPanel({
                 </label>
 
                 <label>
+                Wavy:
+                <input
+                  type="checkbox"
+                  checked={group.isWavy ?? false}
+                  onChange={(e) =>
+                    handleGroupChange(selectedGroup, "isWavy", e.target.checked)
+                  }
+                />
+              </label>
+
+              <label>
+                Parametric:
+                <input
+                  type="checkbox"
+                  checked={group.isParametric ?? false}
+                  onChange={(e) =>
+                    handleGroupChange(selectedGroup, "isParametric", e.target.checked)
+                  }
+                />
+              </label>
+
+              <label>
+                Sine Offset:
+                <input
+                  type="number"
+                  value={group.sineOffset ?? 1}
+                  onChange={(e) =>
+                    handleGroupChange(
+                      selectedGroup,
+                      "sineOffset",
+                      parseInt(e.target.value)
+                    )
+                  }
+                />
+              </label>
+
+                <label>
                   Color:
                   <input
                     type="text"
@@ -346,14 +368,7 @@ function ControlsPanel({
                 </label>
 
                 <div style={{ fontSize: "0.8rem", opacity: 0.7 }}>
-                  <div>
-                    <strong>Expected Lifetime:</strong>{" "}
-                    {expectedLifetime.toFixed(0)} ms
-                  </div>
-                  <div>
-                    <strong>True Range:</strong> {rangePx.toFixed(1)} px (
-                    {(rangePx / tileSize).toFixed(2)} tiles)
-                  </div>
+                  <div><strong>Range:</strong> {calculatedRangeTiles} tiles</div>
                 </div>
 
                 <button
